@@ -40,12 +40,12 @@ void scan(struct BTMap * root,int * nums,int numsSize,int s,int level)
     {
         root->left=malloc(sizeof(struct BTMap));
         root->right=malloc(sizeof(struct BTMap));
-
+        
         root->left->val=root->val-nums[0];
         root->left->left=NULL;
         root->left->right=NULL;
         scan(root->left,nums+1,numsSize-1,s,level+1);
-
+        
         root->right->val=root->val+nums[0];
         root->right->left=NULL;
         root->right->right=NULL;
@@ -75,9 +75,29 @@ int findTargetSumWays(int* nums, int numsSize, int S) {
     return count;
 }
 
-#else
+#else 
 
 int count=0;
+int **map;
+int *numsHead=0;
+int numsSizeBak=0;
+
+struct HashNode
+{
+    int sum;
+    int val;
+    struct HashNode * next;
+};
+
+int searchMap(int numsIndex,int sum)
+{
+    return map[numsIndex][sum+1000];
+}
+
+void addMap(int numsIndex,int sum,int val)
+{
+    map[numsIndex][sum+1000]=val;
+}
 
 int dp(int * nums,int numsSize,int s,int sum)
 {
@@ -85,8 +105,18 @@ int dp(int * nums,int numsSize,int s,int sum)
     int sum2=0;
     if(numsSize>1)
     {
-        sum1=dp(nums+1,numsSize-1,s,sum+nums[0]);
-        sum2=dp(nums+1,numsSize-1,s,sum-nums[0]);
+        sum1=searchMap(nums+1-numsHead,sum+nums[0]);
+        sum2=searchMap(nums+1-numsHead,sum-nums[0]);
+        if(sum1==-99999)
+        {
+            sum1=dp(nums+1,numsSize-1,s,sum+nums[0]);
+            addMap(nums+1-numsHead,sum+nums[0],sum1);
+        }
+        if(sum2==-99999)
+        {
+            sum2=dp(nums+1,numsSize-1,s,sum-nums[0]);
+            addMap(nums+1-numsHead,sum-nums[0],sum2);
+        }
     }
     else
     {
@@ -102,11 +132,26 @@ int dp(int * nums,int numsSize,int s,int sum)
     return sum1+sum2;
 }
 
-int findTargetSumWays(int* nums, int numsSize, int S)
+int findTargetSumWays(int* nums, int numsSize, int S) 
 {
+    int i=0;
+    int j=0;
     count=0;
+    numsHead=nums;
+    numsSizeBak=numsSize;
+    map=malloc(sizeof(int *)*numsSize);
+    
+    for(i=0;i<numsSize;i++)
+    {
+        map[i]=malloc(sizeof(int)*2000);
+        for(j=0;j<2000;j++)
+        {
+            map[i][j]=-99999;
+        }
+    }
+    
     return dp(nums,numsSize,S,0);
 }
-
+    
 
 #endif
